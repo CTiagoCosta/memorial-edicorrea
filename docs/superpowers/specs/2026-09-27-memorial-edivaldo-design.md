@@ -87,12 +87,17 @@ pessoa):
   `signSession()` (`lib/auth/session.ts`, HMAC com `SESSION_SECRET`, sem
   JWT).
 - `getFamilySession()` (`lib/auth/get-family-session.ts`) lê e valida o
-  cookie nas actions que exigem permissão (upload de foto, criação de
-  depoimento, exclusão).
-- Curtidas em depoimentos **não** exigem sessão de família — qualquer
-  visitante pode curtir (a `liked_by` guarda um identificador anônimo, ex.:
-  UUID gerado em `localStorage`, igual à ideia do Grotto de evitar múltiplas
-  curtidas do mesmo visitante).
+  cookie nas actions que exigem permissão.
+- **Exige senha da família**: publicar foto, excluir foto, excluir
+  depoimento.
+- **Aberto a qualquer visitante, sem senha**: publicar um novo depoimento e
+  curtir um depoimento — mesmo comportamento do Grotto, onde qualquer amigo
+  pode deixar uma mensagem e só a família modera (exclui). Isso importa
+  aqui porque os amigos do clube de laço não têm a senha da família e
+  ainda assim devem poder escrever um depoimento.
+- Curtidas usam um identificador anônimo por visitante (UUID gerado e
+  guardado em `localStorage`, igual ao Grotto) para permitir curtir/descurtir
+  sem exigir conta.
 
 ## Upload de fotos (Cloudinary)
 
