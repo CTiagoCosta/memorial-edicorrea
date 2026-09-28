@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  message   String
+  likes     Int      @default(0)
+  likedBy   String[] @default([])
+  createdAt DateTime @default(now())
+}
+
+enum GalleryCategory {
+  GERAL
+  ROPING
+}
+
+model GalleryImage {
+  id                 String          @id @default(uuid())
+  title              String
+  description        String?
+  category           GalleryCategory @default(GERAL)
+  cloudinaryPublicId String
+  url                String
+  createdAt          DateTime        @default(now())
+
+  @@index([category, createdAt])
+}
