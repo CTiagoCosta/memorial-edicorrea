@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 38 36% 94%;
+    --foreground: 22 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 22 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 22 15% 15%;
+    --primary: 17 63% 46%;
+    --primary-foreground: 38 30% 98%;
+    --secondary: 87 20% 90%;
+    --secondary-foreground: 22 15% 15%;
+    --muted: 87 20% 90%;
+    --muted-foreground: 22 10% 40%;
+    --accent: 26 35% 88%;
+    --accent-foreground: 22 15% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 38 30% 98%;
+    --border: 38 15% 85%;
+    --input: 38 15% 85%;
+    --ring: 17 63% 46%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 26 14% 10%;
+    --foreground: 34 33% 92%;
+    --card: 26 12% 13%;
+    --card-foreground: 34 33% 92%;
+    --popover: 26 12% 13%;
+    --popover-foreground: 34 33% 92%;
+    --primary: 17 60% 60%;
+    --primary-foreground: 26 20% 12%;
+    --secondary: 26 10% 18%;
+    --secondary-foreground: 34 33% 92%;
+    --muted: 26 10% 18%;
+    --muted-foreground: 34 10% 65%;
+    --accent: 26 15% 20%;
+    --accent-foreground: 34 33% 92%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 34 33% 92%;
+    --border: 26 12% 22%;
+    --input: 26 12% 22%;
+    --ring: 17 60% 60%;
+  }
+
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground font-sans; }
+  h1, h2, h3, h4 { @apply font-serif; }
+}
+
+html { scroll-behavior: smooth; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp { animation: fadeInUp 0.6s ease-out; }
