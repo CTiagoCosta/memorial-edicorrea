@@ -28,7 +28,9 @@ interface GalleryImageRow {
   createdAt: Date
 }
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
+// Kept under Vercel's hard 4.5MB Server Action request-body cap (see
+// next.config.mjs's matching experimental.serverActions.bodySizeLimit).
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024
 
 function mapImage(row: GalleryImageRow): GalleryImageDTO {
   return {
@@ -66,7 +68,7 @@ export async function uploadGalleryImage(category: GalleryCategory, formData: Fo
     return { error: "Apenas arquivos de imagem são permitidos." }
   }
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return { error: "Arquivo muito grande. Máximo 5MB." }
+    return { error: "Arquivo muito grande. Máximo 4MB." }
   }
 
   const cloudinary = getCloudinaryClient()

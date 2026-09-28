@@ -81,7 +81,7 @@ describe("uploadGalleryImage", () => {
     expect(cloudinaryMock.uploader.upload_stream).not.toHaveBeenCalled()
   })
 
-  it("rejects a file over 5MB", async () => {
+  it("rejects a file over 4MB", async () => {
     vi.mocked(getFamilySession).mockResolvedValue(true)
     const bigFile = new File([new Uint8Array(6 * 1024 * 1024)], "big.jpg", { type: "image/jpeg" })
     const formData = new FormData()
@@ -90,7 +90,7 @@ describe("uploadGalleryImage", () => {
 
     const result = await uploadGalleryImage("GERAL", formData)
 
-    expect(result.error).toBe("Arquivo muito grande. Máximo 5MB.")
+    expect(result.error).toBe("Arquivo muito grande. Máximo 4MB.")
     expect(cloudinaryMock.uploader.upload_stream).not.toHaveBeenCalled()
   })
 

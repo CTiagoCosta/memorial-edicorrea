@@ -7,7 +7,7 @@ describe("HeroSection", () => {
     render(<HeroSection />)
     expect(screen.getByRole("heading", { name: /edivaldo junior/i })).toBeInTheDocument()
     expect(screen.getByText(/"edi"/i)).toBeInTheDocument()
-    expect(screen.getByText("1999 – 2026")).toBeInTheDocument()
+    expect(screen.getByText("???")).toBeInTheDocument()
   })
 
   it("links to the family gallery section", () => {

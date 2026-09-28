@@ -24,10 +24,17 @@ Prisma, fotos no Cloudinary, hospedado na Vercel.
      o Next.js expande `$` em arquivos `.env`, e um hash bcrypt sem escape
      (`$2a$12$...`) seria truncado silenciosamente. Na Vercel, use a versão
      sem escape.
-   - `SESSION_SECRET` — qualquer string longa e aleatória.
+   - `SESSION_SECRET` — qualquer string longa e aleatória. A sessão da
+     família expira sozinha depois de 30 dias; para derrubar todo mundo
+     antes disso (por exemplo, se um dispositivo compartilhado foi
+     comprometido), troque este valor — isso invalida todas as sessões
+     ativas na hora.
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
 5. `npx prisma generate && npx prisma db push` (cria as tabelas no Neon a
-   partir de `prisma/schema.prisma`).
+   partir de `prisma/schema.prisma`). `db push` é suficiente para este
+   projeto do zero; se o schema mudar depois de já haver dados reais no
+   Neon, prefira `npx prisma migrate dev` a partir dali, para manter um
+   histórico de migrações versionado em vez de sincronizar às cegas.
 6. `npm run dev` e acesse http://localhost:3000
 
 ## Deploy

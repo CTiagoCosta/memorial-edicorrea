@@ -14,6 +14,8 @@ vi.mock("@/actions/gallery", () => ({
   deleteGalleryImage: vi.fn(),
 }))
 
+import { deleteGalleryImage, listGalleryImages, uploadGalleryImage } from "@/actions/gallery"
+
 const sampleImage = {
   id: "1",
   title: "Piquenique em família",
@@ -65,5 +67,49 @@ describe("GallerySection", () => {
     await user.click(screen.getByRole("button", { name: /adicionar foto/i }))
 
     expect(await screen.findByPlaceholderText(/título da foto/i)).toBeInTheDocument()
+  })
+
+  it("shows an error and re-enables the form when the upload call itself rejects", async () => {
+    const user = userEvent.setup()
+    vi.mocked(uploadGalleryImage).mockRejectedValueOnce(new Error("network down"))
+    renderGallery({ initialImages: [], initialIsFamily: true })
+
+    await user.click(screen.getByRole("button", { name: /adicionar foto/i }))
+    await user.type(await screen.findByPlaceholderText(/título da foto/i), "Foto nova")
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const file = new File(["a"], "foto.jpg", { type: "image/jpeg" })
+    await user.upload(fileInput, file)
+
+    const publishButton = screen.getByRole("button", { name: /publicar foto/i })
+    await user.click(publishButton)
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/não foi possível publicar/i)
+    expect(publishButton).not.toBeDisabled()
+  })
+
+  it("asks for confirmation before deleting a photo, and does nothing if declined", async () => {
+    const user = userEvent.setup()
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false)
+    renderGallery({ initialIsFamily: true })
+
+    await user.click(screen.getByRole("button", { name: /excluir foto/i }))
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(deleteGalleryImage).not.toHaveBeenCalled()
+    confirmSpy.mockRestore()
+  })
+
+  it("deletes the photo when the confirmation is accepted", async () => {
+    const user = userEvent.setup()
+    vi.spyOn(window, "confirm").mockReturnValue(true)
+    vi.mocked(deleteGalleryImage).mockResolvedValue({ error: null })
+    vi.mocked(listGalleryImages).mockResolvedValue([])
+    renderGallery({ initialIsFamily: true })
+
+    await user.click(screen.getByRole("button", { name: /excluir foto/i }))
+
+    expect(deleteGalleryImage).toHaveBeenCalledWith("1")
+    vi.restoreAllMocks()
   })
 })

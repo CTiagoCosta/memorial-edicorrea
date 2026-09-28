@@ -13,11 +13,13 @@ export interface PersonContent {
 export const edivaldoContent: PersonContent = {
   name: "Edivaldo Junior",
   nickname: "Edi",
-  // TODO: aguardando data de nascimento e falecimento exatas da família.
-  years: "1999 – 2026",
+  // TODO: aguardando data de nascimento e falecimento exatas da família —
+  // não inventar datas: manter "???" até a família confirmar.
+  years: "???",
   heroPhoto: "/assets/img/edi-hero.jpg",
-  // TODO: aguardando uma frase ou lema marcante escolhido pela família.
-  tagline: "Uma vida vivida com leveza, amizade e paixão pelo campo.",
+  // TODO: aguardando uma frase ou lema marcante escolhido pela família —
+  // não inventar um epitáfio.
+  tagline: "Aguardando uma frase da família.",
   city: "Guararapes - SP",
   profession: "Engenheiro Eletricista — UNESP",
   // TODO: aguardando o nome oficial do clube/associação de laço da família.

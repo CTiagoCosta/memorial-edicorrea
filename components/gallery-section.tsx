@@ -73,23 +73,30 @@ export function GallerySection({
     formData.set("description", description.trim())
     formData.set("file", file)
 
-    const result = await uploadGalleryImage(category, formData)
-    setPending(false)
+    try {
+      const result = await uploadGalleryImage(category, formData)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
 
-    if (result.error) {
-      setError(result.error)
-      return
+      setTitle("")
+      setDescription("")
+      setFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      setShowUpload(false)
+      await refresh()
+    } catch {
+      setError("Não foi possível publicar a foto. Tente novamente.")
+    } finally {
+      setPending(false)
     }
-
-    setTitle("")
-    setDescription("")
-    setFile(null)
-    if (fileInputRef.current) fileInputRef.current.value = ""
-    setShowUpload(false)
-    await refresh()
   }
 
   const handleDelete = async (imageId: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir esta foto? Essa ação não pode ser desfeita.")) {
+      return
+    }
     await deleteGalleryImage(imageId)
     await refresh()
   }
@@ -131,7 +138,8 @@ export function GallerySection({
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
+                  aria-label="Excluir foto"
+                  className="absolute right-2 top-2 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100"
                   onClick={() => handleDelete(image.id)}
                 >
                   <Trash2 className="h-4 w-4" />

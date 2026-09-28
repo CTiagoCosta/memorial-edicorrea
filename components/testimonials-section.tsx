@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Heart, Send, Trash2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -34,6 +35,8 @@ export function TestimonialsSection({ initialTestimonials, initialIsFamily }: Te
   const [mural, setMural] = useState(initialTestimonials)
   const [name, setName] = useState("")
   const [message, setMessage] = useState("")
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const refresh = async () => {
     setMural(await listTestimonials())
@@ -41,11 +44,22 @@ export function TestimonialsSection({ initialTestimonials, initialIsFamily }: Te
 
   const handleAdd = async () => {
     if (!name.trim() || !message.trim()) return
-    const result = await addTestimonial(name, message)
-    if (!result.error) {
+    setPending(true)
+    setError(null)
+
+    try {
+      const result = await addTestimonial(name, message)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
       setName("")
       setMessage("")
       await refresh()
+    } catch {
+      setError("Não foi possível enviar sua mensagem. Tente novamente.")
+    } finally {
+      setPending(false)
     }
   }
 
@@ -55,6 +69,9 @@ export function TestimonialsSection({ initialTestimonials, initialIsFamily }: Te
   }
 
   const handleDelete = async (testimonialId: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir este depoimento? Essa ação não pode ser desfeita.")) {
+      return
+    }
     await deleteTestimonial(testimonialId)
     await refresh()
   }
@@ -69,13 +86,18 @@ export function TestimonialsSection({ initialTestimonials, initialIsFamily }: Te
 
         <Card className="mb-8 border-0 bg-card shadow-lg">
           <CardContent className="space-y-3 p-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <Input placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} />
             <Textarea
               placeholder="Compartilhe uma memória especial..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
-            <Button className="w-full" onClick={handleAdd}>
+            <Button className="w-full" onClick={handleAdd} disabled={pending}>
               <Send className="mr-2 h-4 w-4" /> Enviar Mensagem
             </Button>
           </CardContent>

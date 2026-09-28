@@ -18,10 +18,10 @@ desenvolvimento.
 
 - Site público, responsivo, com visual rústico-moderno que remeta à vida no
   campo e ao Team Roping sem cair no clichê "cowboy".
-- Qualquer visitante pode ler a história, ver fotos, ler depoimentos e curtir
-  depoimentos.
-- Só a família (senha única compartilhada) pode publicar novas fotos e novos
-  depoimentos.
+- Qualquer visitante pode ler a história, ver fotos, ler depoimentos, curtir
+  depoimentos e publicar um novo depoimento, sem senha.
+- Só a família (senha única compartilhada) pode publicar/excluir fotos e
+  excluir depoimentos.
 - Conteúdo textual (bio, frase, datas) fica centralizado em arquivos de
   conteúdo, fácil de atualizar quando a família enviar os dados finais.
 
@@ -135,8 +135,8 @@ Uma única rota (`app/page.tsx`), rolagem vertical por seções, navegação por
    upload (exige login da família inline, como o Grotto faz).
 5. **`testimonials-section.tsx`** — mural de depoimentos: lista de cards
    (nome, mensagem, contador de curtidas com botão de curtir livre para
-   qualquer visitante) + formulário de novo depoimento (exige senha da
-   família).
+   qualquer visitante) + formulário de novo depoimento, também aberto a
+   qualquer visitante, sem senha (só a exclusão exige a senha da família).
 6. **`footer.tsx`** — "Em memória de Edivaldo Junior", ano do site.
 7. **`navigation.tsx`** — menu fixo com âncoras para as seções acima.
 8. **`family-login-dialog.tsx`** — reaproveitado do padrão Grotto, sem a

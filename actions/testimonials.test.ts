@@ -1,16 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { prismaMock } = vi.hoisted(() => ({
-  prismaMock: {
-    testimonial: {
-      findMany: vi.fn(),
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
+const { prismaMock, txMock } = vi.hoisted(() => {
+  const txMock = {
+    $queryRaw: vi.fn(),
+    testimonial: { update: vi.fn() },
+  }
+  return {
+    txMock,
+    prismaMock: {
+      testimonial: {
+        findMany: vi.fn(),
+        create: vi.fn(),
+        deleteMany: vi.fn(),
+      },
+      $transaction: vi.fn((callback: (tx: typeof txMock) => unknown) => callback(txMock)),
     },
-  },
-}))
+  }
+})
 
 vi.mock("../lib/db/client", () => ({ prisma: prismaMock }))
 vi.mock("../lib/auth/get-family-session", () => ({ getFamilySession: vi.fn() }))
@@ -42,10 +48,19 @@ describe("listTestimonials", () => {
         name: "Alguém do clube",
         message: "Saudade dos treinos juntos",
         likes: 2,
-        likedBy: ["session-a"],
         createdAt: "2026-01-01T00:00:00.000Z",
       },
     ])
+  })
+
+  it("never exposes the raw likedBy session ids publicly", async () => {
+    prismaMock.testimonial.findMany.mockResolvedValue([
+      { id: "1", name: "A", message: "B", likes: 1, likedBy: ["some-other-visitors-session-id"], createdAt: new Date() },
+    ])
+
+    const result = await listTestimonials()
+
+    expect(result[0]).not.toHaveProperty("likedBy")
   })
 })
 
@@ -68,48 +83,80 @@ describe("addTestimonial", () => {
     })
     expect(result.error).toBeNull()
   })
+
+  it("rejects a non-string name or message instead of throwing, since Server Actions can be called with any payload", async () => {
+    // @ts-expect-error deliberately calling with the wrong runtime type, as a
+    // malicious client bypassing TypeScript would.
+    const result = await addTestimonial(42, "mensagem")
+
+    expect(result.error).toBe("Nome e mensagem são obrigatórios.")
+    expect(prismaMock.testimonial.create).not.toHaveBeenCalled()
+  })
+
+  it("rejects a name longer than 80 characters", async () => {
+    const result = await addTestimonial("a".repeat(81), "mensagem")
+
+    expect(result.error).toBe("Nome muito longo. Máximo 80 caracteres.")
+    expect(prismaMock.testimonial.create).not.toHaveBeenCalled()
+  })
+
+  it("rejects a message longer than 2000 characters", async () => {
+    const result = await addTestimonial("Maria", "a".repeat(2001))
+
+    expect(result.error).toBe("Mensagem muito longa. Máximo 2000 caracteres.")
+    expect(prismaMock.testimonial.create).not.toHaveBeenCalled()
+  })
 })
+
+const SESSION_A = "11111111-1111-4111-8111-111111111111"
+const SESSION_B = "22222222-2222-4222-8222-222222222222"
+const SESSION_C = "33333333-3333-4333-8333-333333333333"
 
 describe("likeTestimonial", () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it("adds the session and increments likes when not already liked", async () => {
-    prismaMock.testimonial.findUnique.mockResolvedValue({ id: "1", likes: 1, likedBy: [] })
-    prismaMock.testimonial.update.mockResolvedValue({})
+  it("locks the row inside a transaction before adding a like, avoiding a lost update", async () => {
+    txMock.$queryRaw.mockResolvedValue([{ id: "1", likes: 1, likedBy: [] }])
+    txMock.testimonial.update.mockResolvedValue({})
 
-    const result = await likeTestimonial("1", "session-a")
+    const result = await likeTestimonial("1", SESSION_A)
 
-    expect(prismaMock.testimonial.update).toHaveBeenCalledWith({
+    expect(prismaMock.$transaction).toHaveBeenCalled()
+    expect(txMock.$queryRaw).toHaveBeenCalled()
+    expect(txMock.testimonial.update).toHaveBeenCalledWith({
       where: { id: "1" },
-      data: { likes: 2, likedBy: ["session-a"] },
+      data: { likes: 2, likedBy: [SESSION_A] },
     })
     expect(result.error).toBeNull()
   })
 
   it("removes the session and decrements likes when already liked among others", async () => {
-    prismaMock.testimonial.findUnique.mockResolvedValue({
-      id: "1",
-      likes: 3,
-      likedBy: ["session-a", "session-b", "session-c"],
-    })
-    prismaMock.testimonial.update.mockResolvedValue({})
+    txMock.$queryRaw.mockResolvedValue([{ id: "1", likes: 3, likedBy: [SESSION_A, SESSION_B, SESSION_C] }])
+    txMock.testimonial.update.mockResolvedValue({})
 
-    const result = await likeTestimonial("1", "session-b")
+    const result = await likeTestimonial("1", SESSION_B)
 
-    expect(prismaMock.testimonial.update).toHaveBeenCalledWith({
+    expect(txMock.testimonial.update).toHaveBeenCalledWith({
       where: { id: "1" },
-      data: { likes: 2, likedBy: ["session-a", "session-c"] },
+      data: { likes: 2, likedBy: [SESSION_A, SESSION_C] },
     })
     expect(result.error).toBeNull()
   })
 
   it("returns an error when the testimonial does not exist", async () => {
-    prismaMock.testimonial.findUnique.mockResolvedValue(null)
+    txMock.$queryRaw.mockResolvedValue([])
 
-    const result = await likeTestimonial("missing", "session-a")
+    const result = await likeTestimonial("missing", SESSION_A)
 
     expect(result.error).toBe("Depoimento não encontrado.")
-    expect(prismaMock.testimonial.update).not.toHaveBeenCalled()
+    expect(txMock.testimonial.update).not.toHaveBeenCalled()
+  })
+
+  it("rejects a sessionId that isn't a UUID, without touching the database", async () => {
+    const result = await likeTestimonial("1", "not-a-real-uuid")
+
+    expect(result.error).toBe("Sessão inválida.")
+    expect(prismaMock.$transaction).not.toHaveBeenCalled()
   })
 })
 
@@ -122,16 +169,25 @@ describe("deleteTestimonial", () => {
     const result = await deleteTestimonial("1")
 
     expect(result.error).toBe("Não autorizado.")
-    expect(prismaMock.testimonial.delete).not.toHaveBeenCalled()
+    expect(prismaMock.testimonial.deleteMany).not.toHaveBeenCalled()
   })
 
   it("deletes when the family session is valid", async () => {
     vi.mocked(getFamilySession).mockResolvedValue(true)
-    prismaMock.testimonial.delete.mockResolvedValue({})
+    prismaMock.testimonial.deleteMany.mockResolvedValue({ count: 1 })
 
     const result = await deleteTestimonial("1")
 
-    expect(prismaMock.testimonial.delete).toHaveBeenCalledWith({ where: { id: "1" } })
+    expect(prismaMock.testimonial.deleteMany).toHaveBeenCalledWith({ where: { id: "1" } })
     expect(result.error).toBeNull()
+  })
+
+  it("returns an error instead of throwing when the testimonial does not exist", async () => {
+    vi.mocked(getFamilySession).mockResolvedValue(true)
+    prismaMock.testimonial.deleteMany.mockResolvedValue({ count: 0 })
+
+    const result = await deleteTestimonial("missing")
+
+    expect(result.error).toBe("Depoimento não encontrado.")
   })
 })
