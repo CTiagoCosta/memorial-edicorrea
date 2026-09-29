@@ -73,10 +73,10 @@ export async function uploadGalleryImage(category: GalleryCategory, formData: Fo
 
   const cloudinary = getCloudinaryClient()
   const buffer = Buffer.from(await file.arrayBuffer())
-  const publicId = `${GALLERY_FOLDER}/${randomUUID()}`
+  const publicId = randomUUID()
 
-  const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream({ public_id: publicId }, (error, result) => {
+  const uploadResult = await new Promise<{ public_id: string; secure_url: string }>((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream({ public_id: publicId, folder: GALLERY_FOLDER }, (error, result) => {
       if (error || !result) {
         reject(error ?? new Error("Falha no upload para o Cloudinary"))
         return
@@ -91,7 +91,10 @@ export async function uploadGalleryImage(category: GalleryCategory, formData: Fo
       title,
       description: description || null,
       category,
-      cloudinaryPublicId: publicId,
+      // Cloudinary combines `folder` + `public_id` into one final public_id
+      // (e.g. "memorial-edicorreia/gallery/<uuid>"); destroy() needs that
+      // full value, not the bare uuid we sent as input.
+      cloudinaryPublicId: uploadResult.public_id,
       url: uploadResult.secure_url,
     },
   })
