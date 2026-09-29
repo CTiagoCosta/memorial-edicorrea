@@ -98,4 +98,42 @@ describe("TestimonialsSection", () => {
     expect(deleteTestimonial).toHaveBeenCalledWith("1")
     vi.restoreAllMocks()
   })
+
+  it("does not show a 'read more' trigger for short testimonials", () => {
+    render(<TestimonialsSection initialTestimonials={[sampleTestimonial]} initialIsFamily={false} />)
+    expect(screen.queryByRole("button", { name: /ler depoimento completo/i })).not.toBeInTheDocument()
+  })
+
+  it("opens the full message in a dialog for long testimonials", async () => {
+    const user = userEvent.setup()
+    const longTestimonial = { ...sampleTestimonial, id: "2", message: "Muita saudade. ".repeat(20) }
+    render(<TestimonialsSection initialTestimonials={[longTestimonial]} initialIsFamily={false} />)
+
+    await user.click(screen.getByRole("button", { name: /ler depoimento completo/i }))
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(longTestimonial.message)
+  })
+
+  it("shows only the 6 most recent testimonials until 'ver todos' is clicked", async () => {
+    const user = userEvent.setup()
+    const many = Array.from({ length: 8 }, (_, i) => ({
+      ...sampleTestimonial,
+      id: `${i + 1}`,
+      name: `Amigo ${i + 1}`,
+    }))
+    render(<TestimonialsSection initialTestimonials={many} initialIsFamily={false} />)
+
+    expect(screen.getAllByText(/^Amigo \d$/)).toHaveLength(6)
+    expect(screen.queryByText("Amigo 7")).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: /ver todos os depoimentos \(8\)/i }))
+
+    expect(screen.getByText("Amigo 7")).toBeInTheDocument()
+    expect(screen.getByText("Amigo 8")).toBeInTheDocument()
+  })
+
+  it("does not show the 'ver todos' button when there are 6 or fewer testimonials", () => {
+    render(<TestimonialsSection initialTestimonials={[sampleTestimonial]} initialIsFamily={false} />)
+    expect(screen.queryByRole("button", { name: /ver todos os depoimentos/i })).not.toBeInTheDocument()
+  })
 })

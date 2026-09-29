@@ -102,12 +102,15 @@ export function GallerySection({
   }
 
   return (
-    <section id={id} className="bg-background py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 text-center">
-          <h2 className="mb-4 text-4xl font-bold text-foreground md:text-5xl">{title}</h2>
-          <p className="mb-8 text-xl text-foreground/70">{subtitle}</p>
-          <Button onClick={handleAddClick}>
+    <section id={id} className="bg-background px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
+      <div className="mx-auto max-w-6xl">
+        <p className="text-xs font-bold uppercase tracking-[0.28em] text-clay-600">Instantes que ficam</p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <h2 className="font-serif text-4xl leading-[0.98] text-foreground md:text-5xl">{title}</h2>
+            <p className="mt-3 text-foreground/60">{subtitle}</p>
+          </div>
+          <Button onClick={handleAddClick} className="rounded-full">
             {isFamily ? <Plus className="mr-2 h-5 w-5" /> : <Lock className="mr-2 h-5 w-5" />}
             {addButtonLabel}
           </Button>
@@ -120,18 +123,18 @@ export function GallerySection({
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-4">
           {images.map((image) => (
-            <Card key={image.id} className="group relative overflow-hidden border-0 shadow-lg">
+            <Card key={image.id} className="group relative overflow-hidden rounded-none border-0 shadow-none">
               <button
                 type="button"
                 onClick={() => setSelectedImage(image)}
-                className="relative block aspect-square w-full cursor-zoom-in"
+                className="relative block aspect-[4/5] w-full cursor-zoom-in"
               >
                 <Image src={image.url} alt={image.title} fill className="object-cover" />
-                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-4 text-left text-white opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-campo-950/70 to-transparent p-4 text-left text-white opacity-0 transition-opacity group-hover:opacity-100">
                   <h3 className="font-semibold">{image.title}</h3>
-                  <p className="text-xs text-gray-200">{formatRelativeDate(image.createdAt)}</p>
+                  <p className="text-xs text-white/70">{formatRelativeDate(image.createdAt)}</p>
                 </div>
               </button>
               {isFamily && (

@@ -1,7 +1,7 @@
 # Memorial Edivaldo Junior
 
-Memorial digital em homenagem a Edivaldo Junior ("Edi"), 25 anos, de
-Guararapes-SP, engenheiro eletricista formado pela UNESP e apaixonado por
+Memorial digital em homenagem a Edivaldo Alves Corrêa Júnior ("Edi"), 26 anos,
+de Guararapes-SP, engenheiro eletricista formado pela UNESP e apaixonado por
 cavalgar e pelo Team Roping.
 
 ## Stack

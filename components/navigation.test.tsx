@@ -7,10 +7,6 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }))
 
-vi.mock("next-themes", () => ({
-  useTheme: () => ({ theme: "light", setTheme: vi.fn() }),
-}))
-
 vi.mock("@/actions/family-auth", () => ({
   logoutFamily: vi.fn(),
 }))

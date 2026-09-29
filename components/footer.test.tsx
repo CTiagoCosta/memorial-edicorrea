@@ -5,7 +5,7 @@ import { Footer } from "./footer"
 describe("Footer", () => {
   it("shows the name in memoriam", () => {
     render(<Footer />)
-    expect(screen.getByText(/edivaldo junior/i)).toBeInTheDocument()
+    expect(screen.getByText(/edivaldo alves corrêa júnior/i)).toBeInTheDocument()
   })
 
   it("links to the developer's contact channels", () => {

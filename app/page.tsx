@@ -1,5 +1,6 @@
 import { HeroSection } from "@/components/hero-section"
 import { AboutSection } from "@/components/about-section"
+import { MemoriesSection } from "@/components/memories-section"
 import { RopingSection } from "@/components/roping-section"
 import { GallerySection } from "@/components/gallery-section"
 import { TestimonialsSection } from "@/components/testimonials-section"
@@ -10,10 +11,9 @@ import { listTestimonials } from "@/actions/testimonials"
 import { getFamilySession } from "@/lib/auth/get-family-session"
 
 export default async function MemorialPage() {
-  const [isFamily, generalImages, ropingImages, testimonials] = await Promise.all([
+  const [isFamily, generalImages, testimonials] = await Promise.all([
     getFamilySession(),
     listGalleryImages("GERAL"),
-    listGalleryImages("ROPING"),
     listTestimonials(),
   ])
 
@@ -22,7 +22,8 @@ export default async function MemorialPage() {
       <Navigation isFamily={isFamily} />
       <HeroSection />
       <AboutSection />
-      <RopingSection initialImages={ropingImages} initialIsFamily={isFamily} />
+      <MemoriesSection />
+      <RopingSection />
       <GallerySection
         id="galeria-familia"
         title="Galeria da Família"

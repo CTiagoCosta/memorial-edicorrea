@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Heart, LogOut, Moon, Shield, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+import { Leaf, LogOut, Menu, Shield, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
 import { logoutFamily } from "@/actions/family-auth"
 
 const LINKS = [
@@ -23,13 +21,8 @@ interface NavigationProps {
 
 export function Navigation({ isFamily: initialIsFamily }: NavigationProps) {
   const [isFamily, setIsFamily] = useState(initialIsFamily)
-  const { theme, setTheme } = useTheme()
+  const [menuOpen, setMenuOpen] = useState(false)
   const router = useRouter()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     setIsFamily(initialIsFamily)
@@ -42,16 +35,18 @@ export function Navigation({ isFamily: initialIsFamily }: NavigationProps) {
   }
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2">
-          <Heart className="h-6 w-6 text-clay-500" />
-          <span className="font-serif text-lg font-bold text-foreground">Edi Correa</span>
-        </div>
+        <a href="#home" className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-clay-600/40 bg-clay-500/10 text-clay-600">
+            <Leaf className="h-4 w-4" />
+          </span>
+          <span className="font-serif text-lg text-foreground">Edi Correa</span>
+        </a>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-7 md:flex">
           {LINKS.map((link) => (
-            <a key={link.href} href={link.href} className="text-sm font-medium text-foreground/70 hover:text-foreground">
+            <a key={link.href} href={link.href} className="text-sm text-foreground/70 transition-colors hover:text-clay-600">
               {link.label}
             </a>
           ))}
@@ -60,7 +55,7 @@ export function Navigation({ isFamily: initialIsFamily }: NavigationProps) {
         <div className="flex items-center gap-3">
           {isFamily && (
             <>
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="hidden sm:inline-flex bg-clay-500/15 text-clay-700">
                 <Shield className="mr-1 h-3 w-3" /> Família
               </Badge>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
@@ -68,16 +63,26 @@ export function Navigation({ isFamily: initialIsFamily }: NavigationProps) {
               </Button>
             </>
           )}
-          <div className="flex items-center gap-2">
-            <Sun className="h-4 w-4 text-foreground/60" />
-            <Switch
-              checked={mounted && theme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-            />
-            <Moon className="h-4 w-4 text-foreground/60" />
-          </div>
+          <button
+            type="button"
+            className="rounded-full border border-border p-2 md:hidden"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="flex flex-col gap-4 border-t border-border/60 px-4 py-5 text-sm md:hidden">
+          {LINKS.map((link) => (
+            <a key={link.href} href={link.href} className="text-foreground/80" onClick={() => setMenuOpen(false)}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      )}
     </nav>
   )
 }
